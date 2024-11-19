@@ -1,0 +1,128 @@
+# Accumulate integers from 1 to 100
+.data
+# Data section (no data required for this example)
+
+.text
+.globl main
+
+main:
+    li t0, 1          # Initialize t0 with 1 (counter)
+    li t1, 100        # Set t1 to 100 (upper limit)
+    li t2, 0          # Initialize sum in t2 with 0
+
+loop:
+    add t2, t2, t0    # Add current t0 to sum in t2
+    addi t0, t0, 1    # Increment the counter
+    ble t0, t1, loop  # Repeat loop until t0 > 100
+
+    # Print the accumulated result
+    mv a0, t2         # Move the result to a0 for printing
+    li a7, 1          # Code for print integer (ecall)
+    ecall
+
+    # Exit the program
+    li a0, 0          # Set exit code to 0
+    li a7, 10         # Code for exit (ecall)
+    ecall
+
+.data
+# Reserve space for an array of 100 integers
+array: .space 400     # Each integer is 4 bytes, so 100 * 4 = 400 bytes
+
+.text
+.globl main
+
+main:
+    li t0, 0          # Initialize counter (0 to 99)
+    li t1, 0          # Initialize sum to 0
+    la t2, array      # Load the address of the array into t2
+
+    # Loop to generate random numbers and store in the array
+generate_loop:
+    li a7, 42         # Syscall to generate a random number
+    ecall
+    sw a0, 0(t2)      # Store the random number in the array
+    add t2, t2, 4     # Move to the next element in the array
+    addi t0, t0, 1    # Increment the counter
+    li t3, 100
+    blt t0, t3, generate_loop # Repeat until 100 numbers are generated
+
+    # Reset counters for summing the array
+    li t0, 0          # Reset counter (0 to 99)
+    li t1, 0          # Reset sum to 0
+    la t2, array      # Reload the address of the array into t2
+
+    # Loop to sum the numbers in the array
+sum_loop:
+    lw t4, 0(t2)      # Load the number from the array
+    add t1, t1, t4    # Add it to the sum
+    add t2, t2, 4     # Move to the next element in the array
+    addi t0, t0, 1    # Increment the counter
+    li t3, 100
+    blt t0, t3, sum_loop # Repeat until all numbers are summed
+
+    # Calculate average (sum / 100)
+    li t0, 100
+    div t5, t1, t0    # t5 holds the average
+
+    # Print the average
+    mv a0, t5         # Move average to a0 for printing
+    li a7, 1          # Code for print integer (ecall)
+    ecall
+
+    # Exit the program
+    li a0, 0          # Set exit code to 0
+    li a7, 10         # Code for exit (ecall)
+    ecall
+
+
+
+.data
+# Reserve space for an array of 100 integers
+array: .space 400     # Each integer is 4 bytes, so 100 * 4 = 400 bytes
+
+.text
+.globl main
+
+main:
+    li t0, 0          # Initialize counter (0 to 99)
+    la t1, array      # Load the base address of the array into t1
+    li t2, -1         # Initialize max to a very low value (let's assume -1)
+    
+    # Loop to generate 100 random numbers and store them in the array
+generate_loop:
+    li a7, 42         # Syscall to generate a random number
+    ecall
+    andi a0, a0, 1023 # Limit random number to between 0 and 1023
+    sw a0, 0(t1)      # Store the random number in the array
+    add t1, t1, 4     # Move to the next element in the array
+    addi t0, t0, 1    # Increment the counter
+    li t3, 100
+    blt t0, t3, generate_loop # Repeat until 100 numbers are generated
+
+    # Reset counter and max for finding the maximum value
+    li t0, 0          # Reset counter (0 to 99)
+    la t1, array      # Reload the base address of the array into t1
+    lw t2, 0(t1)      # Initialize max with the first element in the array
+
+    # Loop to find the maximum value in the array
+find_max_loop:
+    lw t4, 0(t1)      # Load the current number from the array
+    blt t4, t2, skip_update # If current number is less than max, skip update
+    mv t2, t4         # Update max if the current number is greater
+
+skip_update:
+    add t1, t1, 4     # Move to the next element in the array
+    addi t0, t0, 1    # Increment the counter
+    li t3, 100
+    blt t0, t3, find_max_loop # Repeat until all numbers are checked
+
+    # Print the maximum value
+    mv a0, t2         # Move max to a0 for printing
+    li a7, 1          # Code for print integer (ecall)
+    ecall
+
+    # Exit the program
+    li a0, 0          # Set exit code to 0
+    li a7, 10         # Code for exit (ecall)
+    ecall
